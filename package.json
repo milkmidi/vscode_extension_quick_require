@@ -5,7 +5,7 @@
     "version": "0.0.22",
     "publisher": "milkmidi",
     "engines": {
-        "vscode": "^1.0.0"
+        "vscode": "^1.1.0"
     },
     "icon":"img/icon.png",
     "homepage": "https://github.com/milkmidi/vscode_extension_quick_require/blob/master/README.md",    
@@ -33,7 +33,7 @@
                 } ,
                 "quickrequire.exclude": {
                     "type": "array",
-                    "default": ["node_modules","typings","dist","bin","build","tmp"],
+                    "default": ["node_modules","typings","dist","bin","build","tmp","gulpfile.js","webpack.config.js"],
                     "description": "defines files and folders to exclude"
                 }                  
             }
