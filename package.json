@@ -2,10 +2,10 @@
     "name": "vs-code-quick-require",
     "displayName": "Quick Require",
     "description": "quick require file",
-    "version": "0.0.22",
+    "version": "0.0.3",
     "publisher": "milkmidi",
     "engines": {
-        "vscode": "^1.1.0"
+        "vscode": "^1.0.0"
     },
     "icon":"img/icon.png",
     "homepage": "https://github.com/milkmidi/vscode_extension_quick_require/blob/master/README.md",    
