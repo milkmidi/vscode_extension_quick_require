@@ -1,18 +1,18 @@
 const vscode = require( 'vscode' );
 const path = require( 'path' );
 const fs = require( 'fs' );
-// const Uri = require('Uri')
 const wwwRoot = vscode.workspace.rootPath;
 const TYPE_REQUIRE = 0;
 const TYPE_IMPORT = 1;
-const EXPORT_FUN_PATTERN_MATCH = /export function ([A-Za-z_]+)\(\)\{/g;
-const EXPORT_FUN_PATTERN_EXEC = /export function ([A-Za-z_]+)\(\)\{/;
-function showExportFuncionNames( funNameArr, fileName, relativePath ) {    
-    var allFunNameArr = [ "*" , "*as" ].concat( funNameArr );
+const EXPORT_FUN_PATTERN_EXEC = /export function ([A-Za-z_]+)\(\)\{/g;
+
+
+function showExportFuncionNames( funNameArr, fileName, relativePath ) {
+    var allFunNameArr = [ "*as", "*" ].concat( funNameArr );
     vscode.window.showQuickPick( allFunNameArr, { placeHolder: 'select file' } ).then( value => {
         var script = "";
         if ( value === "*" ) {
-            script = `import { ${funNameArr.toString()} } from "${relativePath}";`;           
+            script = `import { ${funNameArr.toString()} } from "${relativePath}";`;
         } else if ( value == "*as"){
             script = `import *as ${fileName} from "${relativePath}";`;
         } else {
@@ -23,55 +23,45 @@ function showExportFuncionNames( funNameArr, fileName, relativePath ) {
 }
 function insertScript( script ) {
     var edit = vscode.window.activeTextEditor;
-    edit.edit( editBuilder  => {                    
+    edit.edit( editBuilder  => {
         const position = edit.selection.active;
         editBuilder.insert( position, script );
-    });         
+    });
 }
+/**
+ *
+ * @param {vscode.ExtensionContext} context
+ */
 function activate( context ) {
     const config = vscode.workspace.getConfiguration( 'quickrequire' ) || {};
-    const include = config.include;
-    const exclude = config.exclude;        
-    // const includePattern = include.reduce( (pre,cur,index ,arr) => { return pre + '**/*.'+cur + (index == arr.length-1 ? '}' : ','); } ,"{");
-    const includePattern = '/**/*.{' + include.toString() +"}"; 
-    // console.log( includePattern );
-    // const excludePattern = exclude.reduce( (pre,cur,index ,arr) => { return pre + '**/'+cur + (index == arr.length-1 ? '}' : ','); } ,"{");
-    const excludePattern = '**/{' + exclude.toString() + '}';
-    // console.log( excludePattern );
-
-
-    
+    const INCLUDE_PATTERN = '/**/*.{' + config.include.toString() +"}";
+    const EXCLUDE_PATTERN = '**/{' + config.exclude.toString() + '}';
+    /**
+     * 
+     * @param {number} type 
+     */
     var startPick = function( type ){
-        vscode.workspace.findFiles( includePattern, excludePattern , 9999 ).then( result => {
+        vscode.workspace.findFiles( INCLUDE_PATTERN, EXCLUDE_PATTERN , 9999 ).then( result => {
             var edit = vscode.window.activeTextEditor;
             if ( !edit ) {
                 return;
             }
             var items = [];
-            // var dirName = path.dirname( edit.document.fileName );
             var currentFile = vscode.Uri.file( edit.document.fileName ).fsPath;
-            // console.log( edit.document.fileName );
             for ( var i = 0; i < result.length; i++ ) {
                 var o = result[ i ];
                 if ( currentFile == o.fsPath )
-                    continue;    
+                    continue;
                 items.push( {
                     label: path.basename( o.path ),                    
-                    description: o.fsPath.replace( wwwRoot, '' ).replace( /\\/g, "/" ),                    
+                    description: o.fsPath.replace( wwwRoot, '' ).replace( /\\/g, "/" ),
                     fsPath: o.fsPath
                 });
-            }            
-            vscode.window.showQuickPick( items, { placeHolder: 'select file' }).then(( value ) => {
+            }
+            vscode.window.showQuickPick( items, { placeHolder: 'select file' }).then( value => {
                 if ( !value ) {
                     return;
                 }
-                
-               
-               
-                // console.log(value.fsPath);                
-                // var req = require(value.fsPath);
-                // console.log(req);
-                // console.log(result);
                 var dirName = path.dirname( edit.document.fileName );
                 var relativePath = path.relative( dirName,  value.fsPath );
                 relativePath = relativePath.replace( /\\/g, "/" );
@@ -82,49 +72,52 @@ function activate( context ) {
                 if ( relativePath.indexOf( "../" ) == - 1 ) {
                     relativePath = "./" + relativePath;
                 }
-                // relativePath = relativePath.replace('.js','');
-            
-
                 var script;
                 if( type === TYPE_REQUIRE){
                     script = "const " + fileName + " = require(\"" + relativePath + "\");\n";
                 } else {
                     var fileString = fs.readFileSync( value.fsPath, "utf-8" );
-                    var matchArr = fileString.match( EXPORT_FUN_PATTERN_MATCH );                          
-                    if ( matchArr && matchArr.length > 0 ) {
-                        var resultArr = [];
-                        for ( var a in matchArr ) {
-                            var result = EXPORT_FUN_PATTERN_EXEC.exec( matchArr[ a ] );                    
-                            if ( result != null && result.length == 2 ) {
-                                resultArr.push( result[ 1 ] );
-                            }
-                        }
+                    var resultArr = stringMatchExportKeyWord( fileString );
+                    if ( resultArr.length > 0 ) {
                         showExportFuncionNames( resultArr, fileName, relativePath );
-                        
                         return;
                     }
                     script = "import " + fileName + " from \"" + relativePath + "\";\n";
                 }
-                insertScript( script );                
-                /*edit.edit(( editBuilder ) => {                    
-                    const position = edit.selection.active;
-                    editBuilder.insert( position, script );
-                });         */
+                insertScript( script );
             });
         });
     };
-    var disposable = vscode.commands.registerCommand( 'extension.quickRequire', ()=> {        
+    var disposable = vscode.commands.registerCommand( 'extension.quickRequire', ()=> {
         startPick( TYPE_REQUIRE );
     });
     context.subscriptions.push( disposable );
 
     disposable = vscode.commands.registerCommand( 'extension.quickRequire_import', ()=> {
         startPick( TYPE_IMPORT);
-    });    
+    });
     context.subscriptions.push( disposable );
 }
-exports.activate = activate;
 
 function deactivate() {
 }
-exports.deactivate = deactivate;
+
+/**
+ *
+ * @param {string} fileString
+ */
+function stringMatchExportKeyWord( fileString ) {
+    var resultFunNameArr = [];
+    var match;
+    while ( match = EXPORT_FUN_PATTERN_EXEC.exec( fileString ) ) {
+        resultFunNameArr.push( match[ 1 ] );
+    }
+    return resultFunNameArr;
+}
+
+
+module.exports = {
+    activate,
+    deactivate,
+    stringMatchExportKeyWord,
+}
