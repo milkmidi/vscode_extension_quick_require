@@ -17,16 +17,44 @@ var myExtension = require('../src/extension');
 suite("Extension Tests", function() {
     test( "stringMatchExportKeyWord", function () {
         const TEMPLATE_CODE = `
-            var extensionName = "milkmidi";
             export function add(){
+            }        
+            export function init() {    
+                console.log('init');
             }
-            export function sub(){
+            /**
+             * @return  {{name:string,age:number}} obj
+             */
+            export function foo() {    
+                console.log( 'foo' );
+                return { name: "milkmidi", age: 18 };    
             }
-            export class SampleClass(){                
+            /**
+             * @param  {function( number )} cb
+             */
+            export function callback( cb ) {
+                cb( 9527 );
             }
-            export var foo = "foo";
         `;
+        const TEMPLATE_CODE2 = ` 
+        function add( a, b ) {
+            return a + b;
+        }  
+        function subtract( a, b ) {
+            return a - b;
+        }
+        function multiply( a, b ) {
+            return a * b;
+        }
+        function divide( a, b ) {
+            return a / b;
+        }
+        module.exports = { add, subtract, multiply, divide };
+        `
         assert.equal( myExtension.stringMatchExportKeyWord( "milkmidi" ).length , 0 );
-        assert.deepEqual( myExtension.stringMatchExportKeyWord( TEMPLATE_CODE ), [ "add", "sub" ] );        
+        assert.equal( myExtension.stringMatchExportKeyWord( TEMPLATE_CODE2 ).length , 0 );
+        assert.deepEqual( myExtension.stringMatchExportKeyWord( TEMPLATE_CODE ), [ "add", "init", "foo", "callback" ] );        
+        
+
     });
 });

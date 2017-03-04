@@ -2,7 +2,7 @@
     "name": "vs-code-quick-require",
     "displayName": "Quick Require",
     "description": "quick require file",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "publisher": "milkmidi",
     "engines": {
         "vscode": "^1.0.0"
@@ -33,7 +33,7 @@
                 } ,
                 "quickrequire.exclude": {
                     "type": "array",
-                    "default": ["node_modules","typings","dist","bin","build","tmp","gulpfile.js","webpack.config.js"],
+                    "default": ["node_modules","typings","dist","bin","build","tmp","gulpfile.js","webpack.config.js","test"],                    
                     "description": "defines files and folders to exclude"
                 }                  
             }
