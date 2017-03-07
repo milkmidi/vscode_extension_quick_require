@@ -4,7 +4,7 @@ const fs = require( 'fs' );
 const wwwRoot = vscode.workspace.rootPath;
 const TYPE_REQUIRE = 0;
 const TYPE_IMPORT = 1;
-const EXPORT_FUN_PATTERN_EXEC = /export function ([A-Za-z_]+)/g;
+const EXPORT_FUN_PATTERN_EXEC = /export (function|class) ([A-Za-z_]+)/g;
 /**
  *
  * @param {vscode.ExtensionContext} context
@@ -91,7 +91,7 @@ function stringMatchExportKeyWord( fileString ) {
     var resultFunNameArr = [];
     var match;
     while ( match = EXPORT_FUN_PATTERN_EXEC.exec( fileString ) ) {
-        resultFunNameArr.push( match[ 1 ] );
+        resultFunNameArr.push( match[ 2 ] );
     }
     return resultFunNameArr;
 }

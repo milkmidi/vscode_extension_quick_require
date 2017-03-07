@@ -35,6 +35,7 @@ suite("Extension Tests", function() {
             export function callback( cb ) {
                 cb( 9527 );
             }
+            export class MyClass{}
         `;
         const TEMPLATE_CODE2 = ` 
         function add( a, b ) {
@@ -53,7 +54,7 @@ suite("Extension Tests", function() {
         `
         assert.equal( myExtension.stringMatchExportKeyWord( "milkmidi" ).length , 0 );
         assert.equal( myExtension.stringMatchExportKeyWord( TEMPLATE_CODE2 ).length , 0 );
-        assert.deepEqual( myExtension.stringMatchExportKeyWord( TEMPLATE_CODE ), [ "add", "init", "foo", "callback" ] );        
+        assert.deepEqual( myExtension.stringMatchExportKeyWord( TEMPLATE_CODE ), [ "add", "init", "foo", "callback", "MyClass" ] );
         
 
     });
