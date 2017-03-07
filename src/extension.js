@@ -57,9 +57,9 @@ function activate( context ) {
                 showExportFuncionNames( resultArr, fileName, type ).then(( scriptName ) => {
                     var script;
                     if( type === TYPE_REQUIRE){
-                        script = "const " + scriptName + " = require(\"" + relativePath + "\");\n";
+                        script = "const " + scriptName + " = require('" + relativePath + "');\n";
                     } else {
-                        script = "import " + scriptName + " from \"" + relativePath + "\";\n";
+                        script = "import " + scriptName + " from '" + relativePath + "';\n";
                     }
                     insertScript( script );
                 });
