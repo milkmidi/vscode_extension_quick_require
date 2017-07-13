@@ -14,9 +14,9 @@ var vscode = require('vscode');
 var myExtension = require('../src/extension');
 
 // Defines a Mocha test suite to group tests of similar kind together
-suite("Extension Tests", function() {
-    test( "stringMatchExportKeyWord", function () {
-        const TEMPLATE_CODE = `
+suite("Extension Tests", function () {
+  test("stringMatchExportKeyWord", function () {
+    const TEMPLATE_CODE = `
             export function add(){
             }        
             export function init() {    
@@ -37,7 +37,7 @@ suite("Extension Tests", function() {
             }
             export class MyClass{}
         `;
-        const TEMPLATE_CODE2 = ` 
+    const TEMPLATE_CODE2 = ` 
         function add( a, b ) {
             return a + b;
         }  
@@ -52,10 +52,10 @@ suite("Extension Tests", function() {
         }
         module.exports = { add, subtract, multiply, divide };
         `
-        assert.equal( myExtension.stringMatchExportKeyWord( "milkmidi" ).length , 0 );
-        assert.equal( myExtension.stringMatchExportKeyWord( TEMPLATE_CODE2 ).length , 0 );
-        assert.deepEqual( myExtension.stringMatchExportKeyWord( TEMPLATE_CODE ), [ "add", "init", "foo", "callback", "MyClass" ] );
-        
+    assert.equal(myExtension.stringMatchExportKeyWord("milkmidi").length, 0);
+    assert.equal(myExtension.stringMatchExportKeyWord(TEMPLATE_CODE2).length, 0);
+    assert.deepEqual(myExtension.stringMatchExportKeyWord(TEMPLATE_CODE), ["add", "init", "foo", "callback", "MyClass"]);
 
-    });
+
+  });
 });

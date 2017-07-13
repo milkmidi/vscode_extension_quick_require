@@ -1,68 +1,66 @@
 {
-    "name": "vs-code-quick-require",
-    "displayName": "Quick Require",
-    "description": "quick require file",
-    "version": "0.1.3",
-    "publisher": "milkmidi",
-    "engines": {
-        "vscode": "^1.0.0"
-    },
-    "icon":"img/icon.png",
-    "homepage": "https://github.com/milkmidi/vscode_extension_quick_require/blob/master/README.md",    
-    "license": "MIT",
-    "galleryBanner": {
-        "color": "#bdc3c7"
-    }, 
-    "categories": [
-        "Other"
-    ],
-    "activationEvents": [
-        "onCommand:extension.quickRequire",
-        "onCommand:extension.quickRequire_import"
-    ],
-    "main": "./src/extension",
-    "contributes": {
-        "configuration": {
-            "type": "object",
-            "title": "quick require configuration",
-            "properties": {
-                "quickrequire.include": {
-                    "type": "array",
-                    "default": ["js","ts","jsx","tsx"],                    
-                    "description": "include files to search for"
-                } ,
-                "quickrequire.exclude": {
-                    "type": "array",
-                    "default": ["node_modules","typings","dist","bin","build","tmp","gulpfile.js","webpack.config.js","test"],                    
-                    "description": "defines files and folders to exclude"
-                }                  
-            }
+  "name": "vs-code-quick-require",
+  "displayName": "Quick Require",
+  "description": "quick require file",
+  "version": "0.1.3",
+  "publisher": "milkmidi",
+  "engines": {
+    "vscode": "^1.0.0"
+  },
+  "icon": "img/icon.png",
+  "homepage": "https://github.com/milkmidi/vscode_extension_quick_require/blob/master/README.md",
+  "license": "MIT",
+  "galleryBanner": {
+    "color": "#bdc3c7"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:extension.quickRequire",
+    "onCommand:extension.quickRequire_import"
+  ],
+  "main": "./src/extension",
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "quick require configuration",
+      "properties": {
+        "quickrequire.include": {
+          "type": "array",
+          "default": ["js", "ts", "jsx", "tsx"],
+          "description": "include files to search for"
         },
-        "commands": [
-            {
-                "command": "extension.quickRequire",
-                "title": "Quick Require"
-            },
-            {
-                "command": "extension.quickRequire_import",
-                "title": "Quick import"
-            }
-        ],
-         "keybindings": [
-			{
-				"command": "extension.quickRequire",
-				"key":"ctrl+shift+1"
-			},
-            {
-				"command": "extension.quickRequire_import",
-				"key":"ctrl+shift+2"
-			}
-		]
+        "quickrequire.exclude": {
+          "type": "array",
+          "default": ["node_modules", "typings", "dist", "bin", "build", "tmp", "gulpfile.js", "webpack.config.js", "test"],
+          "description": "defines files and folders to exclude"
+        }
+      }
     },
-    "scripts": {
-        "postinstall": "node ./node_modules/vscode/bin/install"
-    },
-    "devDependencies": {
-        "vscode": "^0.11.0"
-    }
+    "commands": [{
+        "command": "extension.quickRequire",
+        "title": "Quick Require"
+      },
+      {
+        "command": "extension.quickRequire_import",
+        "title": "Quick import"
+      }
+    ],
+    "keybindings": [{
+        "command": "extension.quickRequire",
+        "key": "ctrl+shift+1"
+      },
+      {
+        "command": "extension.quickRequire_import",
+        "key": "ctrl+shift+2"
+      }
+    ]
+  },
+  "scripts": {
+    "postinstall": "node ./node_modules/vscode/bin/install"
+  },
+  "devDependencies": {
+    "vscode": "^0.11.0"
+  }
 }
