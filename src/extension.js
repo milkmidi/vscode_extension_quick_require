@@ -13,6 +13,12 @@ function activate(context) {
   const config = vscode.workspace.getConfiguration('quickrequire') || {};
   const INCLUDE_PATTERN = '/**/*.{' + config.include.toString() + "}";
   const EXCLUDE_PATTERN = '**/{' + config.exclude.toString() + '}';
+  const QUOTATION_MARK = config.quatation.toString() === "double" ? '"' : "'";
+  var variableType = config.variableType.toString();
+  if(variableType !== "var" && variableType !== "let"){
+    variableType = "const";
+  }
+
   /**
    *
    * @param {number} type
@@ -57,9 +63,9 @@ function activate(context) {
         showExportFuncionNames(resultArr, fileName, type).then((scriptName) => {
           var script;
           if (type === TYPE_REQUIRE) {
-            script = "const " + scriptName + " = require('" + relativePath + "');\n";
+            script = `${variableType} ${scriptName} = require(${QUOTATION_MARK}${relativePath}${QUOTATION_MARK});\n`;
           } else {
-            script = "import " + scriptName + " from '" + relativePath + "';\n";
+            script = `import ${scriptName} from ${QUOTATION_MARK}${relativePath}${QUOTATION_MARK};\n`;
           }
           insertScript(script);
         });
