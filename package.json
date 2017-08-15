@@ -7,7 +7,7 @@
   "engines": {
     "vscode": "^1.0.0"
   },
-  "icon": "https://github.com/milkmidi/vscode_extension_quick_require/blob/master/img/icon.png?raw=true",
+  "icon": "img/icon.png",
   "homepage": "https://github.com/milkmidi/vscode_extension_quick_require/blob/master/README.md",
   "license": "MIT",
   "galleryBanner": {
