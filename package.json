@@ -7,7 +7,7 @@
   "engines": {
     "vscode": "^1.0.0"
   },
-  "icon": "img/icon.png",
+  "icon": "https://github.com/milkmidi/vscode_extension_quick_require/blob/master/img/icon.png?raw=true",
   "homepage": "https://github.com/milkmidi/vscode_extension_quick_require/blob/master/README.md",
   "license": "MIT",
   "galleryBanner": {
@@ -20,7 +20,7 @@
     "onCommand:extension.quickRequire",
     "onCommand:extension.quickRequire_import"
   ],
-  "main": "./src/extension",
+  "main": "./src/extension.js",
   "contributes": {
     "configuration": {
       "type": "object",
@@ -28,17 +28,33 @@
       "properties": {
         "quickrequire.include": {
           "type": "array",
-          "default": ["js", "ts", "jsx", "tsx"],
+          "default": [
+            "js",
+            "ts",
+            "jsx",
+            "tsx",
+            "vue"
+          ],
           "description": "include files to search for"
         },
         "quickrequire.exclude": {
           "type": "array",
-          "default": ["node_modules", "typings", "dist", "bin", "build", "tmp", "gulpfile.js", "webpack.config.js", "test"],
+          "default": [
+            "node_modules",
+            "typings",
+            "dist",
+            "bin",
+            "build",
+            "tmp",
+            "gulpfile.js",
+            "test"
+          ],
           "description": "defines files and folders to exclude"
         }
       }
     },
-    "commands": [{
+    "commands": [
+      {
         "command": "extension.quickRequire",
         "title": "Quick Require"
       },
@@ -47,7 +63,8 @@
         "title": "Quick import"
       }
     ],
-    "keybindings": [{
+    "keybindings": [
+      {
         "command": "extension.quickRequire",
         "key": "ctrl+shift+1"
       },
@@ -61,6 +78,12 @@
     "postinstall": "node ./node_modules/vscode/bin/install"
   },
   "devDependencies": {
-    "vscode": "^0.11.0"
+    "@types/mocha": "^2.2.41",
+    "@types/node": "^8.0.22",
+    "eslint": "^4.4.1",
+    "eslint-config-airbnb": "^15.1.0",
+    "eslint-plugin-import": "^2.7.0",
+    "mocha": "^3.5.0",
+    "vscode": "^1.0.0"
   }
 }
