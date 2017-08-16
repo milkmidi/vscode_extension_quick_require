@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 
 const LAST_INDEX_JS = /\/index\.js$/;
-const EXPORT_FUN_PATTERN_EXEC = /export (function|class|const) ([A-Za-z_$\d]+\d?)/g;
+const FUNNAME_REGEX_PATTERN = /export (?:function|class|const) (\w+)/g;
 
 /**
  * @param {string} text 
@@ -68,12 +68,11 @@ function getRequirePath(editorFileName, fsPath) {
  * @param {string} fileString
  */
 function stringMatchExportKeyWord(fileString) {
-  const resultFunNameArr = [];
-  let match;
-  while (match = EXPORT_FUN_PATTERN_EXEC.exec(fileString)) {
-    resultFunNameArr.push(match[2]);
-  }
-  return resultFunNameArr;
+  const resultNames = [];
+  fileString.replace(FUNNAME_REGEX_PATTERN, (...arg) => {
+    resultNames.push(arg[1]);
+  });
+  return resultNames;
 }
 
 
