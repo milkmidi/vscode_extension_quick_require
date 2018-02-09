@@ -44,7 +44,7 @@ function showExportFuncionNames(funNameArr, jsName, type) {
 
 function activate(context) {
   const config = vscode.workspace.getConfiguration('quickrequire') || {};
-  const INCLUDE_PATTERN = `/**/*.{${config.include.toString()}}`;
+  const INCLUDE_PATTERN = `**/*.{${config.include.toString()}}`;
   const EXCLUDE_PATTERN = `**/{${config.exclude.toString()}}`;
 
   const startPick = (type) => {
