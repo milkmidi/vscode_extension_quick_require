@@ -5,7 +5,7 @@ const LAST_INDEX_JS = /\/index\.js$/;
 const FUNNAME_REGEX_PATTERN = /export (?:function|class|const) (\w+)/g;
 
 /**
- * @param {string} text 
+ * @param {string} text
  * @return {string}
  */
 function customCamelize(text, separator = '_') {
@@ -29,9 +29,9 @@ function getJSVarName(fsPath) {
   return customCamelize(jsName.replace(extName, ''));
 }
 /**
- * 
- * @param {string} filename 
- * @return {string} filename 
+ *
+ * @param {string} filename
+ * @return {string} filename
  */
 function removeExtname(filename) {
   return filename.replace(/\.(js|jsx|ts|tsx)$/, '');
@@ -50,8 +50,8 @@ function displayLabel(workspaceRoot, fsPath) {
 }
 
 /**
- * @param {string} editorFileName 
- * @param {string} fsPath 
+ * @param {string} editorFileName
+ * @param {string} fsPath
  * @return {string}
  */
 function getRequirePath(editorFileName, fsPath) {

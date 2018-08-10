@@ -6,7 +6,7 @@ const {
   getModuleFunctionNames,
 } = require('./util');
 
-const rootPath = vscode.workspace.rootPath;
+const rootPath = vscode.workspace.rootPath; // eslint-disable-line
 const TYPE_REQUIRE = 0;
 const TYPE_IMPORT = 1;
 
@@ -24,15 +24,15 @@ function showExportFuncionNames(funNameArr, jsName, type) {
     return Promise.resolve(jsName);
   }
   return new Promise((resolve) => {
-    const allFunNameArr = ['*as', '*'].concat(funNameArr);
+    const allFunNameArr = ['* as', '*'].concat(funNameArr);
     vscode.window.showQuickPick(allFunNameArr, {
       placeHolder: 'select modules',
     }).then((value) => {
       let script = '';
       if (value === '*') {
         script = `{ ${funNameArr.toString().replace(/,/g, ', ')} }`;
-      } else if (value === '*as') {
-        script = type === TYPE_REQUIRE ? jsName : `*as ${jsName}`;
+      } else if (value === '* as') {
+        script = type === TYPE_REQUIRE ? jsName : `* as ${jsName}`;
       } else {
         script = `{ ${value} }`;
       }
