@@ -84,7 +84,7 @@ function getModuleFunctionNames(fsPath) {
   } catch (error) {
     // console.log(error);
   }
-  const fileStr = fs.readFileSync(fsPath, 'utf-8');
+  const fileStr = fs.readFileSync(require.resolve(fsPath), 'utf-8');
   return stringMatchExportKeyWord(fileStr);
 }
 

@@ -1,4 +1,6 @@
 const vscode = require('vscode');
+const fs = require('fs');
+const path = require('path');
 const {
   getRequirePath,
   displayLabel,
@@ -30,9 +32,11 @@ function showExportFuncionNames(funNameArr, jsName, type) {
     }).then((value) => {
       let script = '';
       if (value === '*') {
-        script = `{ ${funNameArr.toString().replace(/,/g, ', ')} }`;
+        script = `{ ${funNameArr.filter(n => n !== 'default').toString().replace(/,/g, ', ')} }`;
       } else if (value === '* as') {
         script = type === TYPE_REQUIRE ? jsName : `* as ${jsName}`;
+      } else if (value === 'default') {
+        script = `${jsName}`;
       } else {
         script = `{ ${value} }`;
       }
@@ -41,8 +45,42 @@ function showExportFuncionNames(funNameArr, jsName, type) {
   });
 }
 
+function getPackageJson() {
+  const folder = vscode.workspace.rootPath;
+  try {
+    // eslint-disable-next-line
+    const pkg = require(path.join(folder, 'package.json'));
+    return pkg;
+  } catch (e) {
+    console.warn('Unable to find package.json');
+  }
+  return {};
+}
+
+function loadInstalledModules() {
+  const folder = vscode.workspace.rootPath;
+  const pkg = getPackageJson();
+  const deps = pkg.dependencies ? Object.keys(pkg.dependencies) : [];
+  const dev = pkg.devDependencies ? Object.keys(pkg.devDependencies) : [];
+  const allDeps = deps.concat(dev);
+  return allDeps.map((d) => {
+    const depFolderPath = path.join(folder, 'node_modules', d);
+    let fsPath = null;
+    try {
+      fsPath = require.resolve(depFolderPath);
+    } catch (e) {
+      // console.log(e);
+    }
+    return {
+      label: d,
+      fsPath,
+      isAbsolute: true,
+    };
+  }).filter(d => d.fsPath);
+}
 
 function activate(context) {
+  const installedModules = loadInstalledModules();
   const config = vscode.workspace.getConfiguration('quickrequire') || {};
   const INCLUDE_PATTERN = `**/*.{${config.include.toString()}}`;
   const EXCLUDE_PATTERN = `**/{${config.exclude.toString()}}`;
@@ -62,7 +100,7 @@ function activate(context) {
           });
         }
         return arr;
-      }, []);
+      }, []).concat(installedModules);
 
       vscode.window.showQuickPick(items, {
         placeHolder: 'select file',
@@ -72,9 +110,9 @@ function activate(context) {
         }
         // label: src/foo/a.js , src/foo/util
         // fsPath: d:\project\src\foo\a.js
-        const { fsPath } = value;
-        const fileName = getRequirePath(editorFileName, fsPath);
-        const jsName = getJSVarName(fsPath);
+        const { fsPath, label, isAbsolute } = value;
+        const fileName = isAbsolute ? label : getRequirePath(editorFileName, fsPath);
+        const jsName = getJSVarName(fileName);
         const resultArr = getModuleFunctionNames(fsPath);
         showExportFuncionNames(resultArr, jsName, type).then((scriptName) => {
           const script =
@@ -96,6 +134,7 @@ function activate(context) {
   });
   context.subscriptions.push(disposable);
 }
+
 
 function deactivate() {}
 
