@@ -80,12 +80,12 @@ function loadInstalledModules() {
 }
 
 function activate(context) {
-  const installedModules = loadInstalledModules();
   const config = vscode.workspace.getConfiguration('quickrequire') || {};
   const INCLUDE_PATTERN = `**/*.{${config.include.toString()}}`;
   const EXCLUDE_PATTERN = `**/{${config.exclude.toString()}}`;
 
   const startPick = (type) => {
+    const installedModules = loadInstalledModules();
     vscode.workspace.findFiles(INCLUDE_PATTERN, EXCLUDE_PATTERN, 9999).then((uriResults) => {
       const { activeTextEditor } = vscode.window;
       if (!activeTextEditor) {
