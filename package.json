@@ -2,7 +2,7 @@
   "name": "vs-code-quick-require",
   "displayName": "Quick Require",
   "description": "quick require file",
-  "version": "0.3.0",
+  "version": "3.0.0",
   "publisher": "milkmidi",
   "engines": {
     "vscode": "^1.8.0"
@@ -13,8 +13,8 @@
   "bugs": {
     "url": "https://github.com/milkmidi/vscode_extension_quick_require/issues",
     "email": "milkmidi@gmail.com"
-},
-  "repository":{
+  },
+  "repository": {
     "type": "git",
     "url": "https://github.com/milkmidi/vscode_extension_quick_require"
   },
