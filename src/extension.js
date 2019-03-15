@@ -49,7 +49,7 @@ function getPackageJson() {
   const folder = vscode.workspace.rootPath;
   try {
     // eslint-disable-next-line
-    const pkg = require(path.join(folder, 'package.json'));
+    const pkg = JSON.parse(fs.readFileSync(path.join(folder, 'package.json'), 'utf-8'));
     return pkg;
   } catch (e) {
     console.warn('Unable to find package.json');
