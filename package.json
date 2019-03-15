@@ -2,7 +2,7 @@
   "name": "vs-code-quick-require",
   "displayName": "Quick Require",
   "description": "quick require file",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "publisher": "milkmidi",
   "engines": {
     "vscode": "^1.8.0"
