@@ -13,3 +13,7 @@ quick require js
 * default shortcut `Ctrl+Shift+2` --> import
 
 **Enjoy!**
+
+
+## Change Log
+- 0.3.0 Support loading package.json, Thanks Giancarlo Anemone https://github.com/ganemone
