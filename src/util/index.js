@@ -2,8 +2,11 @@ const path = require('path');
 const fs = require('fs');
 
 const LAST_INDEX_JS = /\/index\.js$/;
-const FUNNAME_REGEX_PATTERN = /export (?:function|class|const) (\w+)/g;
-
+const FUNNAME_REGEX_PATTERN = /^export (?:function|class|const|var|let) (\w+)/gm;
+const EXPORT_DEFAULT_REGEX_PATTERN = /^export default (?:function|class) (\w+)/gm;
+const TYPE_REGEX_PATTERN = /^export (?:type) (\w+)/gm;
+const COMMENT_REGEX_PATTERN = /\*[^*]*\*+(?:[^/*][^*]*\*+)*/gm;
+const ALIAS_PATTERN = /(\.{1,2}\/)+/g;
 /**
  * @param {string} text
  * @return {string}
@@ -65,29 +68,76 @@ function getRequirePath(editorFileName, fsPath) {
   return removeExtname(requirePath);
 }
 /**
- * @param {string} fileString
+ * @param {string} rawCodeStr
+ * @return {object} module names
  */
-function stringMatchExportKeyWord(fileString) {
-  const resultNames = [];
-  fileString.replace(FUNNAME_REGEX_PATTERN, (...arg) => {
-    resultNames.push(arg[1]);
+function stringMatchExportKeyWord(rawCodeStr) {
+  const resultObj = {
+    exportDefault: null,
+    exportArr: [],
+    typeArr: [],
+  };
+  // ignore comment
+  // eslint-disable-next-line
+  rawCodeStr = rawCodeStr.replace(COMMENT_REGEX_PATTERN, '');
+
+  rawCodeStr.replace(EXPORT_DEFAULT_REGEX_PATTERN, (...arg) => {
+    // only match first export default
+    if (!resultObj.exportDefault) {
+      resultObj.exportDefault = arg[1]; // eslint-disable-line
+    }
   });
-  return resultNames;
+  rawCodeStr.replace(FUNNAME_REGEX_PATTERN, (...arg) => {
+    resultObj.exportArr.push(arg[1]);
+  });
+  rawCodeStr.replace(TYPE_REGEX_PATTERN, (...arg) => {
+    resultObj.typeArr.push(arg[1]);
+  });
+  return resultObj;
 }
 
-
-function getModuleFunctionNames(fsPath) {
+/**
+ *
+ * @param {string} fsPath
+ * @return {string[]}
+ */
+function getCommonJSModuleFunctionNames(fsPath) {
+  let resultObj = [];
   try {
     // module.exports
-    const resultObj = require(fsPath); // eslint-disable-line
+    resultObj = require(fsPath); // eslint-disable-line
     return Object.keys(resultObj);
   } catch (error) {
     // console.log(error);
   }
-  const fileStr = fs.readFileSync(require.resolve(fsPath), 'utf-8');
-  return stringMatchExportKeyWord(fileStr);
+  return resultObj;
 }
 
+function getES6ModuleFunctionNames(fsPath) {
+  const rawCodeStr = fs.readFileSync(require.resolve(fsPath), 'utf-8');
+  return stringMatchExportKeyWord(rawCodeStr);
+}
+
+function convertFunctionTypeToScript({ type, label }, oneModule = false) {
+  if (type === 'export') {
+    return oneModule ? `{ ${label} }` : `${label}`;
+  } else if (type === 'type') {
+    return oneModule ? `{ type ${label} }` : `type ${label}`;
+  }
+  return label;
+}
+
+/**
+ *
+ * @param {string} modulePath
+ * @param {string} aliasPath
+ */
+function covertAliasPath(modulePath, aliasPath) {
+  if (!aliasPath) {
+    return modulePath;
+  }
+  return modulePath.replace(ALIAS_PATTERN, aliasPath);
+}
 
 module.exports = {
   getJSVarName,
@@ -96,5 +146,8 @@ module.exports = {
   removeExtname,
   getRequirePath,
   stringMatchExportKeyWord,
-  getModuleFunctionNames,
+  getCommonJSModuleFunctionNames,
+  getES6ModuleFunctionNames,
+  convertFunctionTypeToScript,
+  covertAliasPath,
 };

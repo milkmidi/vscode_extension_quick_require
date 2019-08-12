@@ -16,4 +16,15 @@ quick require js
 
 
 ## Change Log
+- 3.1.0
+  - bug fixed
+  - support flowjs export key word
+  - new settings
+    - ingorePackageJSONDependencies default false
+    - aliasPath default ''
+    ```js
+    import MyModule from '../../../components/MyModule';
+    // translate to aliasPath
+    import MyModule from '@/components/MyModule';
+    ```
 - 0.3.0 Support loading package.json, Thanks Giancarlo Anemone https://github.com/ganemone
