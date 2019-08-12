@@ -49,7 +49,7 @@ suite('Extension Tests', () => {
     }
   });
 
-  test('stringMatchExportKeyWord', () => {
+  test('util.stringMatchExportKeyWord', () => {
     const TEMPLATE_CODE = `
 export function add(){
 }
@@ -95,6 +95,30 @@ export type MyType = {
     assert.equal(exportDefault, 'MyDefaultClass');
     assert.deepEqual(exportArr, exportArrResults);
     assert.deepEqual(typeArr, typeArrResults);
+  });
+
+  test('util.stringMatchExportKeyWord only export default', () => {
+    const TEMPLATE_CODE = `
+<script>
+export default {
+}
+</script>
+    `;
+    const { exportDefault, exportArr, typeArr } = stringMatchExportKeyWord(TEMPLATE_CODE);
+    assert.equal(exportDefault, null);
+    assert.equal(exportArr.length, 0);
+    assert.equal(typeArr.length, 0);
+  });
+  test('util.stringMatchExportKeyWord export from', () => {
+    const TEMPLATE_CODE = `
+<script>
+export { default } from './milkmidi.jsx'
+</script>
+    `;
+    const { exportDefault, exportArr, typeArr } = stringMatchExportKeyWord(TEMPLATE_CODE);
+    assert.equal(exportDefault, null);
+    assert.equal(exportArr.length, 0);
+    assert.equal(typeArr.length, 0);
   });
   test('util.covertAliasPath', () => {
     const entries = [

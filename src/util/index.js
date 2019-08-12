@@ -24,7 +24,7 @@ function customCamelize(text, separator = '_') {
 function getJSVarName(fsPath) {
   const extName = path.extname(fsPath);
   let jsName = '';
-  if (/index\.js$/.test(fsPath)) {
+  if (LAST_INDEX_JS.test(fsPath)) {
     jsName = path.dirname(fsPath).split('\\').pop();
   } else {
     jsName = path.basename(fsPath);

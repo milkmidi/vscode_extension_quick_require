@@ -48,15 +48,15 @@ function showExportFuncionNames(funNameArr, jsName, requireType) {
     const quickPickOptions = {
       placeHolder: 'select module',
     };
-    vscode.window.showQuickPick(allFunNameArr, quickPickOptions).then((result/* FunctionType */) => {
-      if (!result) {
+    vscode.window.showQuickPick(allFunNameArr, quickPickOptions).then((pickItem/* FunctionType | string */) => {
+      if (!pickItem) {
         reject(new Error('user cancel'));
         return;
       }
       let script = '';
-      if (result === '* as') {
+      if (pickItem === '* as') {
         script = requireType === TYPE_REQUIRE ? jsName : `* as ${jsName}`;
-      } else if (result === '*') {
+      } else if (pickItem === '*') {
         const exportDefaultArr = funNameArr.filter(({ type }) => type === 'exportDefault');
         if (exportDefaultArr.length > 0) {
           script = `${exportDefaultArr[0].label} `;
@@ -73,13 +73,13 @@ function showExportFuncionNames(funNameArr, jsName, requireType) {
         return;
       }
 
-      const { type: functionType, label } = result;
+      const { type, label } = pickItem;
 
-      if (functionType === 'exportDefault') {
+      if (type === 'exportDefault') {
         script = label;
-      } else if (functionType === 'export') {
+      } else if (type === 'export') {
         script = `{ ${label} }`;
-      } else if (functionType === 'type') {
+      } else if (type === 'type') {
         script = `{ type ${label} }`;
       }
       resolve(script);
@@ -100,10 +100,6 @@ function getPackageJson() {
 }
 
 function loadInstalledModules() {
-  const { ingorePackageJSONDependencies } = getConfig();
-  if (ingorePackageJSONDependencies) {
-    return [];
-  }
   const folder = vscode.workspace.rootPath;
   const pkg = getPackageJson();
   const deps = pkg.dependencies ? Object.keys(pkg.dependencies) : [];
@@ -127,14 +123,16 @@ function loadInstalledModules() {
 }
 
 function activate(context) {
-  const config = vscode.workspace.getConfiguration('quickrequire') || {};
-  const INCLUDE_PATTERN = `**/*.{${config.include.toString()}}`;
-  const EXCLUDE_PATTERN = `**/{${config.exclude.toString()}}`;
+  const {
+    include, exclude, aliasPath, ingorePackageJSONDependencies,
+  } = getConfig();
+  const INCLUDE_PATTERN = `**/*.{${include.toString()}}`;
+  const EXCLUDE_PATTERN = `**/{${exclude.toString()}}`;
   /**
    * @param {number} type
    */
-  const startPick = (type) => {
-    const installedModules = loadInstalledModules();
+  const startPick = async (type) => {
+    const installedModules = ingorePackageJSONDependencies ? [] : loadInstalledModules();
     vscode.workspace.findFiles(INCLUDE_PATTERN, EXCLUDE_PATTERN, 9999).then((uriResults) => {
       const { activeTextEditor } = vscode.window;
       if (!activeTextEditor) {
@@ -142,6 +140,7 @@ function activate(context) {
       }
       const { fileName: editorFileName } = activeTextEditor.document;
       const items = uriResults.reduce((arr, uri) => {
+        // ignore current fsPath
         if (editorFileName !== uri.fsPath) {
           arr.push({
             label: displayLabel(rootPath, uri.fsPath),
@@ -153,7 +152,7 @@ function activate(context) {
 
       vscode.window.showQuickPick(items, {
         placeHolder: type === TYPE_REQUIRE ? 'require file' : 'import file',
-      }).then((pickItem) => {
+      }).then(async (pickItem) => {
         if (!pickItem) {
           return;
         }
@@ -182,9 +181,7 @@ function activate(context) {
         } else {
           // eslint-disable-next-line
           let { exportDefault, exportArr, typeArr } = getES6ModuleFunctionNames(fsPath);
-          if (!exportDefault
-            && exportArr.length === 0
-            && typeArr.length === 0) {
+          if (!exportDefault && exportArr.length === 0 && typeArr.length === 0) {
             exportDefault = jsName;
           }
 
@@ -211,21 +208,16 @@ function activate(context) {
           }
         }
 
-        showExportFuncionNames(functionNames, jsName, type).then((scriptName) => {
-          const { aliasPath } = config;
-          let modulePath = fileName;
-          if (aliasPath) {
-            modulePath = covertAliasPath(fileName, aliasPath);
-          }
-          console.log(aliasPath);
+        try {
+          const scriptName = await showExportFuncionNames(functionNames, jsName, type);
+          const modulePath = aliasPath ? covertAliasPath(fileName, aliasPath) : fileName;
           const script =
-            type === TYPE_REQUIRE
-              ? `const ${scriptName} = require('${modulePath}');\n`
-              : `import ${scriptName} from '${modulePath}';\n`;
+              type === TYPE_REQUIRE
+                ? `const ${scriptName} = require('${modulePath}');\n`
+                : `import ${scriptName} from '${modulePath}';\n`;
           insertScript(script);
-        }).catch(() => {
-
-        });
+        } catch (e) { // eslint-disable-line
+        }
       });
     });
   };
