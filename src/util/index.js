@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 
-const LAST_INDEX_JS = /\/index\.js$/;
+const LAST_INDEX_JS = /\/index\.(js|ts|jsx|tsx)$/;
 const FUNNAME_REGEX_PATTERN = /^export (?:function|class|const|var|let) (\w+)/gm;
 const EXPORT_DEFAULT_REGEX_PATTERN = /^export default (?:function|class) (\w+)/gm;
 const TYPE_REGEX_PATTERN = /^export (?:type) (\w+)/gm;
@@ -93,6 +93,7 @@ function stringMatchExportKeyWord(rawCodeStr) {
   rawCodeStr.replace(TYPE_REGEX_PATTERN, (...arg) => {
     resultObj.typeArr.push(arg[1]);
   });
+
   return resultObj;
 }
 
@@ -115,7 +116,9 @@ function getCommonJSModuleFunctionNames(fsPath) {
 
 function getES6ModuleFunctionNames(fsPath) {
   const rawCodeStr = fs.readFileSync(require.resolve(fsPath), 'utf-8');
-  return stringMatchExportKeyWord(rawCodeStr);
+  const resultObj = stringMatchExportKeyWord(rawCodeStr);
+
+  return resultObj;
 }
 
 function convertFunctionTypeToScript({ type, label }, oneModule = false) {
