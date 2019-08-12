@@ -5,13 +5,25 @@ const {
   getRequirePath,
   displayLabel,
   getJSVarName,
-  getModuleFunctionNames,
+  getCommonJSModuleFunctionNames,
+  getES6ModuleFunctionNames,
+  convertFunctionTypeToScript,
+  covertAliasPath,
 } = require('./util');
+
+
+/**
+ * FunctionType
+ * @typedef {Object} FunctionType
+ * @property {string} type function type, exportDefault | export | type
+ * @property {string} label display name
+ */
 
 const rootPath = vscode.workspace.rootPath; // eslint-disable-line
 const TYPE_REQUIRE = 0;
 const TYPE_IMPORT = 1;
 
+const getConfig = () => vscode.workspace.getConfiguration('quickrequire') || {};
 
 function insertScript(script) {
   const edit = vscode.window.activeTextEditor;
@@ -20,25 +32,55 @@ function insertScript(script) {
     editBuilder.insert(position, script);
   });
 }
-
-function showExportFuncionNames(funNameArr, jsName, type) {
-  if (funNameArr.length === 0) {
-    return Promise.resolve(jsName);
+/**
+ * @param {FunctionType[]} funNameArr
+ * @param {string} jsName
+ * @param {number} type
+ */
+function showExportFuncionNames(funNameArr, jsName, requireType) {
+  // console.log(funNameArr);
+  if (funNameArr.length <= 1) {
+    const script = convertFunctionTypeToScript(funNameArr[0], true);
+    return Promise.resolve(script);
   }
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const allFunNameArr = ['* as', '*'].concat(funNameArr);
-    vscode.window.showQuickPick(allFunNameArr, {
-      placeHolder: 'select modules',
-    }).then((value) => {
+    const quickPickOptions = {
+      placeHolder: 'select module',
+    };
+    vscode.window.showQuickPick(allFunNameArr, quickPickOptions).then((result/* FunctionType */) => {
+      if (!result) {
+        reject(new Error('user cancel'));
+        return;
+      }
       let script = '';
-      if (value === '*') {
-        script = `{ ${funNameArr.filter(n => n !== 'default').toString().replace(/,/g, ', ')} }`;
-      } else if (value === '* as') {
-        script = type === TYPE_REQUIRE ? jsName : `* as ${jsName}`;
-      } else if (value === 'default') {
-        script = `${jsName}`;
-      } else {
-        script = `{ ${value} }`;
+      if (result === '* as') {
+        script = requireType === TYPE_REQUIRE ? jsName : `* as ${jsName}`;
+      } else if (result === '*') {
+        const exportDefaultArr = funNameArr.filter(({ type }) => type === 'exportDefault');
+        if (exportDefaultArr.length > 0) {
+          script = `${exportDefaultArr[0].label} `;
+        }
+        const moduleScript = funNameArr
+          .filter(({ type }) => type !== 'exportDefault')
+          .map(functionType => convertFunctionTypeToScript(functionType))
+          .toString()
+          .replace(/,/g, ', ');
+        script += `{ ${moduleScript} }`;
+      }
+      if (script) {
+        resolve(script);
+        return;
+      }
+
+      const { type: functionType, label } = result;
+
+      if (functionType === 'exportDefault') {
+        script = label;
+      } else if (functionType === 'export') {
+        script = `{ ${label} }`;
+      } else if (functionType === 'type') {
+        script = `{ type ${label} }`;
       }
       resolve(script);
     });
@@ -58,6 +100,10 @@ function getPackageJson() {
 }
 
 function loadInstalledModules() {
+  const { ingorePackageJSONDependencies } = getConfig();
+  if (ingorePackageJSONDependencies) {
+    return [];
+  }
   const folder = vscode.workspace.rootPath;
   const pkg = getPackageJson();
   const deps = pkg.dependencies ? Object.keys(pkg.dependencies) : [];
@@ -74,7 +120,8 @@ function loadInstalledModules() {
     return {
       label: d,
       fsPath,
-      isAbsolute: true,
+      description: 'dependency',
+      isDependencyPackage: true,
     };
   }).filter(d => d.fsPath);
 }
@@ -83,7 +130,9 @@ function activate(context) {
   const config = vscode.workspace.getConfiguration('quickrequire') || {};
   const INCLUDE_PATTERN = `**/*.{${config.include.toString()}}`;
   const EXCLUDE_PATTERN = `**/{${config.exclude.toString()}}`;
-
+  /**
+   * @param {number} type
+   */
   const startPick = (type) => {
     const installedModules = loadInstalledModules();
     vscode.workspace.findFiles(INCLUDE_PATTERN, EXCLUDE_PATTERN, 9999).then((uriResults) => {
@@ -103,23 +152,72 @@ function activate(context) {
       }, []).concat(installedModules);
 
       vscode.window.showQuickPick(items, {
-        placeHolder: 'select file',
-      }).then((value) => {
-        if (!value) {
+        placeHolder: type === TYPE_REQUIRE ? 'require file' : 'import file',
+      }).then((pickItem) => {
+        if (!pickItem) {
           return;
         }
         // label: src/foo/a.js , src/foo/util
         // fsPath: d:\project\src\foo\a.js
-        const { fsPath, label, isAbsolute } = value;
-        const fileName = isAbsolute ? label : getRequirePath(editorFileName, fsPath);
+        // isDependencyPackage boolean
+        const { fsPath, label, isDependencyPackage } = pickItem;
+        const fileName = isDependencyPackage ? label : getRequirePath(editorFileName, fsPath);
         const jsName = getJSVarName(fileName);
-        const resultArr = getModuleFunctionNames(fsPath);
-        showExportFuncionNames(resultArr, jsName, type).then((scriptName) => {
+        if (isDependencyPackage) {
           const script =
             type === TYPE_REQUIRE
-              ? `const ${scriptName} = require('${fileName}');\n`
-              : `import ${scriptName} from '${fileName}';\n`;
+              ? `const ${jsName} = require('${fileName}');\n`
+              : `import ${jsName} from '${fileName}';\n`;
           insertScript(script);
+          return;
+        }
+
+        let functionNames = [];
+        const commonjsFunctionNames = getCommonJSModuleFunctionNames(fsPath);
+        if (commonjsFunctionNames.length) {
+          functionNames = commonjsFunctionNames.map(functionName => ({
+            type: 'export',
+            label: functionName,
+          }));
+        } else {
+          const { exportDefault, exportArr, typeArr } = getES6ModuleFunctionNames(fsPath);
+          if (exportDefault) {
+            functionNames.push({
+              type: 'exportDefault',
+              label: exportDefault,
+              description: `export default ${exportDefault}`,
+            });
+          }
+          if (exportArr.length > 0) {
+            functionNames = functionNames.concat(exportArr.map(functionName => ({
+              type: 'export',
+              label: functionName,
+              description: `export ${functionName}`,
+            })));
+          }
+          if (typeArr.length > 0) {
+            functionNames = functionNames.concat(typeArr.map(functionName => ({
+              type: 'type',
+              label: functionName,
+              description: `type ${functionName}`,
+            })));
+          }
+        }
+
+        showExportFuncionNames(functionNames, jsName, type).then((scriptName) => {
+          const { aliasPath } = config;
+          let modulePath = fileName;
+          if (aliasPath) {
+            modulePath = covertAliasPath(fileName, aliasPath);
+          }
+          console.log(aliasPath);
+          const script =
+            type === TYPE_REQUIRE
+              ? `const ${scriptName} = require('${modulePath}');\n`
+              : `import ${scriptName} from '${modulePath}';\n`;
+          insertScript(script);
+        }).catch(() => {
+
         });
       });
     });
