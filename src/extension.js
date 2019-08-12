@@ -180,7 +180,14 @@ function activate(context) {
             label: functionName,
           }));
         } else {
-          const { exportDefault, exportArr, typeArr } = getES6ModuleFunctionNames(fsPath);
+          // eslint-disable-next-line
+          let { exportDefault, exportArr, typeArr } = getES6ModuleFunctionNames(fsPath);
+          if (!exportDefault
+            && exportArr.length === 0
+            && typeArr.length === 0) {
+            exportDefault = jsName;
+          }
+
           if (exportDefault) {
             functionNames.push({
               type: 'exportDefault',
