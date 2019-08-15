@@ -4,9 +4,10 @@ const fs = require('fs');
 const LAST_INDEX_JS = /\/index\.(js|ts|jsx|tsx)$/;
 const FUNNAME_REGEX_PATTERN = /^export (?:function|class|const|var|let) (\w+)/gm;
 const EXPORT_DEFAULT_REGEX_PATTERN = /^export default (?:function|class) (\w+)/gm;
+const EXPORT_DEFAULT_VAR_REGEX_PATTERN = /^export default ([a-zA-Z]+)/gm;
 const TYPE_REGEX_PATTERN = /^export (?:type) (\w+)/gm;
 const COMMENT_REGEX_PATTERN = /\*[^*]*\*+(?:[^/*][^*]*\*+)*/gm;
-const ALIAS_PATTERN = /(\.{1,2}\/)+/g;
+// const ALIAS_PATTERN = /(\.{1,2}\/)+/g;
 /**
  * @param {string} text
  * @return {string}
@@ -87,6 +88,11 @@ function stringMatchExportKeyWord(rawCodeStr) {
       resultObj.exportDefault = arg[1]; // eslint-disable-line
     }
   });
+  if (!resultObj.exportDefault) {
+    rawCodeStr.replace(EXPORT_DEFAULT_VAR_REGEX_PATTERN, (...arg) => {
+      resultObj.exportDefault = arg[1]; // eslint-disable-line
+    });
+  }
   rawCodeStr.replace(FUNNAME_REGEX_PATTERN, (...arg) => {
     resultObj.exportArr.push(arg[1]);
   });
