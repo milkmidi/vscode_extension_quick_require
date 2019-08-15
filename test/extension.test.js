@@ -120,6 +120,29 @@ export { default } from './milkmidi.jsx'
     assert.equal(exportArr.length, 0);
     assert.equal(typeArr.length, 0);
   });
+  test('util.stringMatchExportKeyWord only export default 2', () => {
+    const TEMPLATE_CODE = `
+
+var o = {};
+export default o;
+</script>
+    `;
+    const { exportDefault, exportArr, typeArr } = stringMatchExportKeyWord(TEMPLATE_CODE);
+    assert.equal(exportDefault, 'o');
+    assert.equal(exportArr.length, 0);
+    assert.equal(typeArr.length, 0);
+  });
+  test('util.stringMatchExportKeyWord export from', () => {
+    const TEMPLATE_CODE = `
+<script>
+export { default } from './milkmidi.jsx'
+</script>
+    `;
+    const { exportDefault, exportArr, typeArr } = stringMatchExportKeyWord(TEMPLATE_CODE);
+    assert.equal(exportDefault, null);
+    assert.equal(exportArr.length, 0);
+    assert.equal(typeArr.length, 0);
+  });
   test('util.covertAliasPath', () => {
     const rootPath = 'd:\\github_milkmidi\\test';
     const aliasPath = {

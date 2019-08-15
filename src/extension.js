@@ -66,6 +66,9 @@ function showExportFuncionNames(funNameArr, jsName, requireType) {
           .map(functionType => convertFunctionTypeToScript(functionType))
           .toString()
           .replace(/,/g, ', ');
+        if (script !== '') {
+          script += ',';
+        }
         script += `{ ${moduleScript} }`;
       }
       if (script) {
@@ -184,6 +187,8 @@ function activate(context) {
           if (!exportDefault && exportArr.length === 0 && typeArr.length === 0) {
             exportDefault = jsName;
           }
+
+          console.log(exportDefault);
 
           if (exportDefault) {
             functionNames.push({
