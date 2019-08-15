@@ -121,17 +121,24 @@ export { default } from './milkmidi.jsx'
     assert.equal(typeArr.length, 0);
   });
   test('util.covertAliasPath', () => {
+    const rootPath = 'd:\\github_milkmidi\\test';
+    const aliasPath = {
+      '@/': 'src',
+    };
     const entries = [
-      '../util/sub/a',
-      './util/sub/b',
-      '../../util/sub/onlyExportDefault',
-      '../../../util/foo',
+      'd:\\github_milkmidi\\test\\src\\util\\sub\\a',
+      'd:\\github_milkmidi\\test\\src\\util\\sub\\b',
+      'd:\\github_milkmidi\\test\\src\\util\\sub\\onlyExportDefault',
+      'd:\\github_milkmidi\\test\\src\\util\\foo',
+      '/Users/milkmidi/github_milkmidi/test/src/component/foo/index.js',
+      '/Users/milkmidi/github_milkmidi/test/src/component/App',
     ];
-    const aliasPath = '@/';
-    assert.equal(covertAliasPath(entries[0]), '../util/sub/a');
-    assert.equal(covertAliasPath(entries[0], aliasPath), '@/util/sub/a');
-    assert.equal(covertAliasPath(entries[1], aliasPath), '@/util/sub/b');
-    assert.equal(covertAliasPath(entries[2], aliasPath), '@/util/sub/onlyExportDefault');
-    assert.equal(covertAliasPath(entries[3], aliasPath), '@/util/foo');
+    assert.equal(covertAliasPath(rootPath, entries[0]), '');
+    assert.equal(covertAliasPath(rootPath, entries[0], aliasPath), '@/util/sub/a');
+    assert.equal(covertAliasPath(rootPath, entries[1], aliasPath), '@/util/sub/b');
+    assert.equal(covertAliasPath(rootPath, entries[2], aliasPath), '@/util/sub/onlyExportDefault');
+    assert.equal(covertAliasPath(rootPath, entries[3], aliasPath), '@/util/foo');
+    assert.equal(covertAliasPath(rootPath, entries[4], aliasPath), '@/component/foo');
+    assert.equal(covertAliasPath(rootPath, entries[5], aliasPath), '@/component/App');
   });
 });

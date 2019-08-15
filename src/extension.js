@@ -210,7 +210,7 @@ function activate(context) {
 
         try {
           const scriptName = await showExportFuncionNames(functionNames, jsName, type);
-          const modulePath = aliasPath ? covertAliasPath(fileName, aliasPath) : fileName;
+          const modulePath = covertAliasPath(vscode.workspace.rootPath, fsPath, aliasPath) || fileName;
           const script =
               type === TYPE_REQUIRE
                 ? `const ${scriptName} = require('${modulePath}');\n`
