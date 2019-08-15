@@ -2,7 +2,7 @@
   "name": "vs-code-quick-require",
   "displayName": "Quick Require",
   "description": "quick require(import) file",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "publisher": "milkmidi",
   "engines": {
     "vscode": "^1.8.0"
@@ -36,11 +36,12 @@
       "properties": {
         "quickrequire.ingorePackageJSONDependencies": {
           "type":"boolean",
-          "default": false
+          "default": false,
+          "description": "ignore search package.json dependencies modules"
         },
         "quickrequire.aliasPath": {
-          "type": "string",
-          "default": ""
+          "type": ["object", "null"],
+          "default": null
         },
         "quickrequire.include": {
           "type": "array",

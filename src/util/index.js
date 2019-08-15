@@ -24,7 +24,7 @@ function customCamelize(text, separator = '_') {
 function getJSVarName(fsPath) {
   const extName = path.extname(fsPath);
   let jsName = '';
-  if (/index\.js$/.test(fsPath)) {
+  if (LAST_INDEX_JS.test(fsPath)) {
     jsName = path.dirname(fsPath).split('\\').pop();
   } else {
     jsName = path.basename(fsPath);
@@ -132,14 +132,24 @@ function convertFunctionTypeToScript({ type, label }, oneModule = false) {
 
 /**
  *
+ * @param {string} project root path
  * @param {string} modulePath
- * @param {string} aliasPath
+ * @param {object} aliasPath
  */
-function covertAliasPath(modulePath, aliasPath) {
-  if (!aliasPath) {
-    return modulePath;
+function covertAliasPath(rootPath, fsPath, aliasPath) {
+  const requirePath = getRequirePath(rootPath, fsPath);
+  if (aliasPath && Object.keys(aliasPath).length > 0) {
+    const keys = Object.keys(aliasPath);
+    for (let i = 0; i < keys.length; i += 1) {
+      const key = keys[i];
+      const value = aliasPath[key];
+      const valueIdx = requirePath.indexOf(value);
+      if (valueIdx > -1) {
+        return key + requirePath.substr(valueIdx + value.length + 1);
+      }
+    }
   }
-  return modulePath.replace(ALIAS_PATTERN, aliasPath);
+  return '';
 }
 
 module.exports = {
